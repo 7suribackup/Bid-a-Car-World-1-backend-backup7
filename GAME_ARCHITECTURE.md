@@ -208,7 +208,7 @@ DataStoreManager (Foundation - Saves Everything)
 **Stores:**
 ```lua
 players[playerId] = {
-  money = 700,
+  money = 700, ( or how much he got at that time ) 
   rebirths = {
     count = 0,
     timestamp = 0
@@ -259,9 +259,10 @@ players[playerId] = {
 **Flow:**
 ```
 1. Player selects tier → Teleport to RNG Garage
-2. RNG Garage generated (4-7 deco + 1 car)
+2. RNG Garage generated (4-7 deco + 1 car etc etc -> check GARAGE TIERS)
 3. Set starting bid price (tier-based)
 4. Start bidding phase (2 sec player, 1 sec bots)
+4.5. Bid raise with only 10% of the live bid value (current bid 300 bid 30$)
 5. Countdown: 2 → 1 → 0
 6. If no bids: auto-end, refund entry
 7. If bids made: Calculate winner (highest bid)
@@ -319,13 +320,22 @@ while currentBidAmount < randomStopPoint:
 **Purpose:** Create random garages based on tier
 
 **Tier Specifications:**
+GARAGE TIERS
 
 | Tier | Entry | Car Rarity | Deco Count | Locker Rate |
 |------|-------|-----------|-----------|------------|
 | BEGINNER | $200 | Common-Rare | 4-7 | 1/10 |
 | ADVANCED | $500 | Uncommon-Epic | 7-13 | 1/4 |
-| EXPERT | $1200 | Rare-Legendary + 0.33% SPEC | 13-21 | 1/2 |
+| EXPERT | $1200 | Rare-Legendary + 3% SPEC | 13-21 | 1/2 |
 | CHOSEN | $2500 | Rare-Legendary + 10% SPEC | 21-50 | 1/1 (always) |
+| ------ | $5000 | Epic-Legendary +25% SPEC | 50-80 | 2x 1/1 (always double)  ( UNLOCKED AFTER DOING A CHOSEN BID )
+
+-CAR RARITIES-
+BEGINNER ( common 1/4 | uncommon 1/5 | rare 1/8 )
+ADVANCED ( uncommon 1/8 | rare 1/6 | epic 1/10 )
+EXPERT ( rare 1/10 | epic 1/6 | legendary 1/12 - 3% SPEC INSTEAD OF LEGENDARY )
+CHOSEN ( rare 1/36 | epic 1/24 | legendary 1/8 - 10% SPEC INSTEAD OF LEGENDARY )
+------ ( epic 1/24 | legendary 1/8 - 25% SPEC INSTEAD OF LEGENDARY )
 
 **Generation:**
 ```
@@ -351,6 +361,7 @@ while currentBidAmount < randomStopPoint:
 
 ### 6. **InventoryManager**
 **Purpose:** Manage all inventory items (Items, Cars, Lockers, Index)
+UI Bid Battles Style cyan-purple
 
 **Structure:**
 ```lua
@@ -437,6 +448,7 @@ inventory[playerId] = {
 
 ### 7. **PlotManager**
 **Purpose:** Manage player plot, conveyors, and placements
+PLOT IS ON THE MAP PHISICALLY, i dont need UI for this, backend for place car and npc + decorations on the plot Building phase
 
 **Plot Structure:**
 ```lua
@@ -556,7 +568,7 @@ end
 
 **Mechanics:**
 ```
-1. Player has $2000+ → See Rebirth UI
+1. Player has $2000+ -> click on rebirth button -> Rebirth UI
 2. Player confirms rebirth
 3. Money set to $0 (lose all)
 4. Rebirth count +1
@@ -587,7 +599,7 @@ end
 │                                │
 │ [BASIC DICE] [GOLDEN DICE]     │
 │ $150         $300              │
-│ [BUY]        [BUY]             │
+│ [BUY]        [BUY]             │   modern smooth UI style
 │                                │
 │ [DIAMOND DICE] [NA-SPEC DICE]  │
 │ $1100        $2500             │
@@ -599,14 +611,21 @@ end
 **Dice Types & Contents:**
 
 | Dice | Price | NPC Rarity | Boost Range | Availability |
-|------|-------|-----------|------------|--------------|
-| Basic | $150 | Common | 10-30% | Always |
-| Golden | $300 | Uncommon | 30-50% | Rebirth 1+ |
-| Diamond | $1100 | Rare | 50-80% | Rebirth 2+ |
-| NA-SPEC | $2500 | SPEC | 80-120% | Rebirth 3+ |
+|------|-------|------------|-------------|--------------|
+| Basic | $150 | Common-Rare | 10-30%+ | Always |
+| Golden | $300 | Uncommon-Epic | 20-60% | Always |
+| Diamond | $1100 | Rare-Legendary | 50-100% | Always |
+| NA-SPEC | $2500 | Rare-SPEC | 50-150% | Rebirth 1+ |
+
+Basic (1/2 common | 1/6 uncommon | 1/10 rare )
+Golden ( 1/4 uncommon | 1/6 rare | 1/10 epic )
+Diamond ( 1/10 rare | 1/6 epic | 1/12 legendary )
+NA-SPEC ( 1/21 rare | 1/16 epic | 1/4 legendary | 1/8 SPEEC )
+-----------------RNG---------------------
 
 **Flow:**
-1. Player buys dice ($X deducted)
+0. Player clicks Shop button and get teleported to Merchant where he interact with the NPC ( E ) 
+1. UI opens and player buys dice ($X deducted)
 2. Dice goes to Items → Inventory
 3. Player opens dice → RNG rolls NPC
 4. NPC goes to Items → Inventory
@@ -686,18 +705,37 @@ end
 
 **UI Screens:**
 
-1. **MainLobby** - 3 buttons (Garage/Events/Shop)
-2. **TierSelectionUI** - 4 scrollable bid tiers
+1. **Screen** - 3 buttons (Garage/Events/Shop)
+Garage -> teleports player to his plot
+Events -> teleports player to events (coming soon)
+Shop -> teleports player to the merchant 
+2. **BIDSELECTIONUI** - 4 scrollable bid tiers left to right
+Beginner -> teleports player to RNG Garage 4-7 decor + a car generated
+Advanced -> teleports player to RNG Garage 7-13 decor + a car generated 
+Expert -> teleports player to RNG Garage 13-21 decor + a car generated       | CHECK GARAGE TIERS AND BID FLOW FOR MORE INFO 
+Chosen -> teleports player to RNG Garage 21-50 decor + a car generated
+------ -> teleports player to RNG Garage 50-80 decor + a car generated
 3. **BidUI** - Modern Bid Battles style
-   - Live countdown (2→1→0)
-   - Raise Hand button
+   - Live countdown (2->1->0)
+   2 sec for player | 1 sec for BOT
+   - BID button ( Raise 10% of current bid amount )
    - Current bid amount
    - Player vs Bot bid indicators
 4. **InventoryUI** - 4 tabs (Items/Cars/Lockers/Index)
+Items contain - decors + potions + dice
+Cars contian - cars you own ALL
+Lockers contain - all lockers obtained from bidding, can be opened by clicking on locker and confirming cracking 
+Index contain - all the cars in the game, filtered by rarity common -> uncommon -> rare -> epic -> legendary -> SPEC
 5. **RebirthUI** - Confirmation + benefits display
-6. **TradeUI** - Pet Simulator style (Rebirth 2+)
-7. **PlotUI** - Visual garage with conveyors
-8. **ShopUI** - Dice shop grid
+Its a button, if player click it RebirthUI open, if player close it it closes
+6. **TradeUI** - Pet Simulator style modern smooth (Rebirth 2+)
+7. **DiceShopUI** - Dice shop grid
+this will be on a NPC in merchant, player interract with it ( E ) and DiceShopUI opens, if player close it it closes
+8. **SHOPGAMEPASSUI** - General shop grid
+scrollable, with gamepasses with Robux
+Luck boosts / NPCs / limited dice / limited cars / more
+COMING SOON-------
+
 
 **Key Functions:**
 - `ShowMainLobby(playerId)`
@@ -721,8 +759,12 @@ end
 | Lobby | RNG Garage | BID button click |
 | RNG Garage | Lobby | LEAVE BID button click |
 | Lobby | Merchant | SHOP button click |
-| Merchant | Lobby | Close shop |
-| Lobby | Lobby | LOGIN (spawn at spawn) |
+| Merchant | Plot | Garage button click |
+| Plot | RNG Garage | BID button click |
+...
+...
+...
+
 
 **Key Functions:**
 - `Teleport(playerId, destination, args = {})`
